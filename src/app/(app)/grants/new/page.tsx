@@ -1,0 +1,709 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Plus,
+  Trash2,
+  Wand2,
+} from "lucide-react"
+import { TopBar } from "@/components/layout/top-bar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
+
+const STEPS = [
+  { label: "Funder", description: "Select funder" },
+  { label: "Program", description: "Select program" },
+  { label: "Details", description: "Grant details" },
+  { label: "Schedule", description: "Reporting schedule" },
+  { label: "Review", description: "Review & save" },
+]
+
+interface Funder {
+  id: string
+  name: string
+}
+
+interface Program {
+  id: string
+  name: string
+}
+
+interface DueDate {
+  period_label: string
+  due_date: string
+  period_start: string
+  period_end: string
+}
+
+function StepIndicator({ currentStep }: { currentStep: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      {STEPS.map((step, i) => (
+        <div key={step.label} className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <div
+              className={`flex size-7 items-center justify-center rounded-full text-xs font-medium ${
+                i < currentStep
+                  ? "bg-primary text-primary-foreground"
+                  : i === currentStep
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {i < currentStep ? <Check className="size-3.5" /> : i + 1}
+            </div>
+            <span
+              className={`hidden text-sm sm:inline ${
+                i === currentStep
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div
+              className={`h-px w-6 ${
+                i < currentStep ? "bg-primary" : "bg-border"
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function NewGrantPage() {
+  const router = useRouter()
+  const [step, setStep] = useState(0)
+  const [saving, setSaving] = useState(false)
+
+  // Step 1: Funder
+  const [funders, setFunders] = useState<Funder[]>([])
+  const [funderSearch, setFunderSearch] = useState("")
+  const [selectedFunder, setSelectedFunder] = useState<Funder | null>(null)
+
+  // Step 2: Program
+  const [programs, setPrograms] = useState<Program[]>([])
+  const [programSearch, setProgramSearch] = useState("")
+  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
+
+  // Step 3: Details
+  const [grantName, setGrantName] = useState("")
+  const [grantIdExternal, setGrantIdExternal] = useState("")
+  const [amount, setAmount] = useState("")
+  const [periodStart, setPeriodStart] = useState("")
+  const [periodEnd, setPeriodEnd] = useState("")
+  const [purpose, setPurpose] = useState("")
+  const [restrictions, setRestrictions] = useState("")
+
+  // Step 4: Due dates
+  const [dueDates, setDueDates] = useState<DueDate[]>([])
+
+  useEffect(() => {
+    fetch("/api/organizations")
+      .then(() => {})
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    async function loadFunders() {
+      try {
+        const res = await fetch("/api/funders")
+        if (res.ok) {
+          setFunders(await res.json())
+        }
+      } catch {}
+    }
+    loadFunders()
+  }, [])
+
+  useEffect(() => {
+    async function loadPrograms() {
+      try {
+        const res = await fetch("/api/programs")
+        if (res.ok) {
+          setPrograms(await res.json())
+        }
+      } catch {}
+    }
+    loadPrograms()
+  }, [])
+
+  const filteredFunders = funders.filter((f) =>
+    f.name.toLowerCase().includes(funderSearch.toLowerCase())
+  )
+
+  const filteredPrograms = programs.filter((p) =>
+    p.name.toLowerCase().includes(programSearch.toLowerCase())
+  )
+
+  function addDueDate() {
+    setDueDates((prev) => [
+      ...prev,
+      { period_label: "", due_date: "", period_start: "", period_end: "" },
+    ])
+  }
+
+  function removeDueDate(index: number) {
+    setDueDates((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function updateDueDate(index: number, field: keyof DueDate, value: string) {
+    setDueDates((prev) =>
+      prev.map((dd, i) => (i === index ? { ...dd, [field]: value } : dd))
+    )
+  }
+
+  const autoGenerateDueDates = useCallback(() => {
+    if (!periodStart || !periodEnd) return
+
+    const start = new Date(periodStart + "T00:00:00")
+    const end = new Date(periodEnd + "T00:00:00")
+    const generated: DueDate[] = []
+
+    // Generate quarterly dates
+    const current = new Date(start)
+    let qNum = 1
+
+    while (current < end) {
+      const qStart = new Date(current)
+      const qEnd = new Date(current)
+      qEnd.setMonth(qEnd.getMonth() + 3)
+      if (qEnd > end) qEnd.setTime(end.getTime())
+
+      // Due date is 30 days after quarter end
+      const dueDate = new Date(qEnd)
+      dueDate.setDate(dueDate.getDate() + 30)
+
+      const year = qStart.getFullYear()
+
+      generated.push({
+        period_label: `Q${qNum} ${year}`,
+        due_date: dueDate.toISOString().split("T")[0],
+        period_start: qStart.toISOString().split("T")[0],
+        period_end: qEnd.toISOString().split("T")[0],
+      })
+
+      current.setMonth(current.getMonth() + 3)
+      qNum++
+      if (qNum > 4) qNum = 1
+    }
+
+    setDueDates(generated)
+  }, [periodStart, periodEnd])
+
+  function canProceed(): boolean {
+    switch (step) {
+      case 0:
+        return selectedFunder !== null
+      case 1:
+        return true // program is optional
+      case 2:
+        return grantName.trim() !== ""
+      case 3:
+        return true
+      default:
+        return true
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const res = await fetch("/api/grants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          funder_id: selectedFunder?.id,
+          program_id: selectedProgram?.id || null,
+          name: grantName,
+          grant_id_external: grantIdExternal || null,
+          amount: amount ? parseFloat(amount) : null,
+          period_start: periodStart || null,
+          period_end: periodEnd || null,
+          purpose: purpose || null,
+          restrictions: restrictions || null,
+          status: "active",
+          report_due_dates: dueDates.filter(
+            (dd) => dd.due_date && dd.period_label
+          ),
+        }),
+      })
+
+      if (res.ok) {
+        const grant = await res.json()
+        router.push(`/grants/${grant.id}`)
+      } else {
+        const err = await res.json()
+        alert(`Failed to create grant: ${err.error}`)
+      }
+    } catch (err) {
+      alert("Failed to create grant. Please try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <TopBar
+        title="Add Grant"
+        actions={
+          <Button variant="outline" render={<Link href="/grants" />}>
+            Cancel
+          </Button>
+        }
+      />
+
+      <div className="flex-1 p-6">
+        <div className="mx-auto max-w-2xl space-y-6">
+          {/* Step Indicator */}
+          <StepIndicator currentStep={step} />
+
+          {/* Step 1: Select Funder */}
+          {step === 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Funder</CardTitle>
+                <CardDescription>
+                  Choose the funding organization for this grant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="Search funders..."
+                  value={funderSearch}
+                  onChange={(e) => setFunderSearch(e.target.value)}
+                />
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  {filteredFunders.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">
+                      No funders found.
+                    </p>
+                  ) : (
+                    filteredFunders.map((funder) => (
+                      <button
+                        key={funder.id}
+                        type="button"
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                          selectedFunder?.id === funder.id
+                            ? "bg-primary/10 font-medium text-primary"
+                            : ""
+                        }`}
+                        onClick={() => setSelectedFunder(funder)}
+                      >
+                        {funder.name}
+                      </button>
+                    ))
+                  )}
+                </div>
+                <div className="border-t pt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href="/funders/new" />}
+                  >
+                    <Plus className="size-3.5" />
+                    Add New Funder
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 2: Select Program */}
+          {step === 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Program</CardTitle>
+                <CardDescription>
+                  Optionally link this grant to a program.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="Search programs..."
+                  value={programSearch}
+                  onChange={(e) => setProgramSearch(e.target.value)}
+                />
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  <button
+                    type="button"
+                    className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                      selectedProgram === null
+                        ? "bg-primary/10 font-medium text-primary"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedProgram(null)}
+                  >
+                    No program (skip)
+                  </button>
+                  {filteredPrograms.map((program) => (
+                    <button
+                      key={program.id}
+                      type="button"
+                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                        selectedProgram?.id === program.id
+                          ? "bg-primary/10 font-medium text-primary"
+                          : ""
+                      }`}
+                      onClick={() => setSelectedProgram(program)}
+                    >
+                      {program.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="border-t pt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href="/programs/new" />}
+                  >
+                    <Plus className="size-3.5" />
+                    Add New Program
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 3: Grant Details */}
+          {step === 2 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Grant Details</CardTitle>
+                <CardDescription>
+                  Enter the core information about this grant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="grantName">
+                    Grant Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="grantName"
+                    placeholder="e.g. 2025 Community Health Grant"
+                    value={grantName}
+                    onChange={(e) => setGrantName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="grantIdExt">External Grant ID</Label>
+                  <Input
+                    id="grantIdExt"
+                    placeholder="e.g. GR-2025-001"
+                    value={grantIdExternal}
+                    onChange={(e) => setGrantIdExternal(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="amount"
+                      type="number"
+                      placeholder="50000"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </InputGroup>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="periodStart">Period Start</Label>
+                    <Input
+                      id="periodStart"
+                      type="date"
+                      value={periodStart}
+                      onChange={(e) => setPeriodStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="periodEnd">Period End</Label>
+                    <Input
+                      id="periodEnd"
+                      type="date"
+                      value={periodEnd}
+                      onChange={(e) => setPeriodEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="purpose">Purpose</Label>
+                  <Textarea
+                    id="purpose"
+                    placeholder="Describe the purpose of this grant..."
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="restrictions">Restrictions</Label>
+                  <Textarea
+                    id="restrictions"
+                    placeholder="Any restrictions on how funds can be used..."
+                    value={restrictions}
+                    onChange={(e) => setRestrictions(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 4: Reporting Schedule */}
+          {step === 3 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Reporting Schedule</CardTitle>
+                <CardDescription>
+                  Define when reports are due for this grant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {periodStart && periodEnd && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={autoGenerateDueDates}
+                  >
+                    <Wand2 className="size-3.5" />
+                    Auto-generate Quarterly Dates
+                  </Button>
+                )}
+
+                {dueDates.length === 0 && (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    No report due dates added yet.
+                  </p>
+                )}
+
+                {dueDates.map((dd, i) => (
+                  <div
+                    key={i}
+                    className="space-y-3 rounded-lg border p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Report {i + 1}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => removeDueDate(i)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Period Label</Label>
+                        <Input
+                          placeholder="e.g. Q1 2025"
+                          value={dd.period_label}
+                          onChange={(e) =>
+                            updateDueDate(i, "period_label", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Due Date</Label>
+                        <Input
+                          type="date"
+                          value={dd.due_date}
+                          onChange={(e) =>
+                            updateDueDate(i, "due_date", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Period Start</Label>
+                        <Input
+                          type="date"
+                          value={dd.period_start}
+                          onChange={(e) =>
+                            updateDueDate(i, "period_start", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Period End</Label>
+                        <Input
+                          type="date"
+                          value={dd.period_end}
+                          onChange={(e) =>
+                            updateDueDate(i, "period_end", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button variant="outline" size="sm" onClick={addDueDate}>
+                  <Plus className="size-3.5" />
+                  Add Due Date
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 5: Review & Save */}
+          {step === 4 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Review & Save</CardTitle>
+                <CardDescription>
+                  Review all details before creating the grant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Funder
+                  </h3>
+                  <p className="text-sm">{selectedFunder?.name ?? "--"}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Program
+                  </h3>
+                  <p className="text-sm">
+                    {selectedProgram?.name ?? "None"}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Grant Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Name:</span>{" "}
+                      {grantName}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">
+                        External ID:
+                      </span>{" "}
+                      {grantIdExternal || "--"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Amount:</span>{" "}
+                      {amount
+                        ? new Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          }).format(parseFloat(amount))
+                        : "--"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Period:</span>{" "}
+                      {periodStart && periodEnd
+                        ? `${periodStart} to ${periodEnd}`
+                        : "--"}
+                    </div>
+                  </div>
+                  {purpose && (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Purpose:</span>{" "}
+                      {purpose}
+                    </div>
+                  )}
+                  {restrictions && (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">
+                        Restrictions:
+                      </span>{" "}
+                      {restrictions}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Reporting Schedule ({dueDates.length} report
+                    {dueDates.length !== 1 ? "s" : ""})
+                  </h3>
+                  {dueDates.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No report due dates configured.
+                    </p>
+                  ) : (
+                    <div className="space-y-1">
+                      {dueDates.map((dd, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                        >
+                          <span className="font-medium">{dd.period_label}</span>
+                          <span className="text-muted-foreground">
+                            Due {dd.due_date}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setStep((s) => s - 1)}
+              disabled={step === 0}
+            >
+              <ArrowLeft className="size-4" />
+              Back
+            </Button>
+
+            {step < STEPS.length - 1 ? (
+              <Button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canProceed()}
+              >
+                Next
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : (
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Create Grant"}
+                {!saving && <Check className="size-4" />}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
