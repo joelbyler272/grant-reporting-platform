@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
+import { UpgradePrompt } from "@/components/shared/upgrade-prompt"
 
 interface Program {
   id: string
@@ -21,10 +22,16 @@ interface Program {
   created_at: string
 }
 
+interface LimitInfo {
+  current: number
+  limit: number
+}
+
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [limitReached, setLimitReached] = useState<LimitInfo | null>(null)
 
   useEffect(() => {
     async function fetchPrograms() {
@@ -35,6 +42,16 @@ export default function ProgramsPage() {
         }
         const data = await res.json()
         setPrograms(data)
+
+        // Check if adding a new program would hit the limit
+        const subRes = await fetch("/api/billing/subscription")
+        if (subRes.ok) {
+          const sub = await subRes.json()
+          const usage = sub.usage?.programs
+          if (usage?.limit !== null && usage?.current >= usage?.limit) {
+            setLimitReached({ current: usage.current, limit: usage.limit })
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
@@ -57,6 +74,15 @@ export default function ProgramsPage() {
       />
 
       <div className="flex-1 p-6">
+        {limitReached && (
+          <div className="mb-6">
+            <UpgradePrompt
+              resource="programs"
+              current={limitReached.current}
+              limit={limitReached.limit}
+            />
+          </div>
+        )}
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />

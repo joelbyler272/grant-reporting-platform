@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { checkLimit } from "@/lib/billing/limits"
 
 export async function GET() {
   const supabase = await createServerSupabaseClient()
@@ -97,6 +98,28 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  // Get org_id for limit check
+  const { data: profile } = await supabase
+    .from("users")
+    .select("org_id")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.org_id) {
+    const limitCheck = await checkLimit(profile.org_id, "funders")
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: "Free plan limit reached",
+          limit: limitCheck.limit,
+          current: limitCheck.current,
+          upgrade_url: "/settings?tab=billing",
+        },
+        { status: 403 }
+      )
+    }
+  }
 
   const body = await request.json()
 

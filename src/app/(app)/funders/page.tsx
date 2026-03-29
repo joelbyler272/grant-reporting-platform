@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CommunityLibraryModal } from "@/components/funders/community-library-modal"
+import { UpgradePrompt } from "@/components/shared/upgrade-prompt"
 
 interface Funder {
   id: string
@@ -18,9 +19,15 @@ interface Funder {
   last_report_sent: string | null
 }
 
+interface LimitInfo {
+  current: number
+  limit: number
+}
+
 export default function FundersPage() {
   const [funders, setFunders] = useState<Funder[]>([])
   const [loading, setLoading] = useState(true)
+  const [limitReached, setLimitReached] = useState<LimitInfo | null>(null)
 
   const fetchFunders = useCallback(async () => {
     try {
@@ -28,6 +35,16 @@ export default function FundersPage() {
       if (res.ok) {
         const data = await res.json()
         setFunders(data)
+      }
+
+      // Check if adding a new funder would hit the limit
+      const subRes = await fetch("/api/billing/subscription")
+      if (subRes.ok) {
+        const sub = await subRes.json()
+        const usage = sub.usage?.funders
+        if (usage?.limit !== null && usage?.current >= usage?.limit) {
+          setLimitReached({ current: usage.current, limit: usage.limit })
+        }
       }
     } finally {
       setLoading(false)
@@ -65,6 +82,15 @@ export default function FundersPage() {
       />
 
       <div className="flex-1 p-6">
+        {limitReached && (
+          <div className="mb-6">
+            <UpgradePrompt
+              resource="funders"
+              current={limitReached.current}
+              limit={limitReached.limit}
+            />
+          </div>
+        )}
         {loading ? (
           <Card>
             <CardContent className="py-16 text-center">

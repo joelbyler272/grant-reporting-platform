@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { TopBar } from "@/components/layout/top-bar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import type { Organization } from "@/types"
 import { NotificationSettings } from "@/components/settings/notification-settings"
 import { TeamManagement } from "@/components/settings/team-management"
+import { BillingSettings } from "@/components/settings/billing-settings"
 
 const MONTHS = [
   { value: 1, label: "January" },
@@ -40,6 +42,16 @@ const MONTHS = [
 ]
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-1 items-center justify-center p-6 text-muted-foreground">Loading...</div>}>
+      <SettingsContent />
+    </Suspense>
+  )
+}
+
+function SettingsContent() {
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get("tab") ?? "organization"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -116,7 +128,7 @@ export default function SettingsPage() {
       <TopBar title="Settings" />
 
       <div className="flex-1 p-6">
-        <Tabs defaultValue="organization">
+        <Tabs defaultValue={defaultTab}>
           <TabsList>
             <TabsTrigger value="organization">Organization</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
@@ -246,19 +258,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="billing" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing &amp; Subscription</CardTitle>
-                <CardDescription>
-                  Manage your subscription plan and payment methods.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Billing management coming soon.
-                </p>
-              </CardContent>
-            </Card>
+            <BillingSettings />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, FileDown, Copy, Loader2, Check } from "lucide-react"
+import Link from "next/link"
+import { FileText, FileDown, Copy, Loader2, Check, Lock } from "lucide-react"
 import {
   Dialog,
   DialogTrigger,
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/button"
 interface ExportDialogProps {
   reportId: string
   reportContent: Record<string, { content: string | null }> | null
+  plan?: "free" | "pro"
   children: React.ReactNode
 }
 
@@ -23,8 +25,10 @@ type ExportFormat = "docx" | "pdf" | "text"
 export function ExportDialog({
   reportId,
   reportContent,
+  plan = "free",
   children,
 }: ExportDialogProps) {
+  const isFreePlan = plan === "free"
   const [downloading, setDownloading] = useState<ExportFormat | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -77,48 +81,92 @@ export function ExportDialog({
 
         <div className="space-y-3">
           {/* Word */}
-          <button
-            type="button"
-            className="flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-            onClick={() => handleExport("docx")}
-            disabled={downloading !== null}
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-              {downloading === "docx" ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <FileText className="size-5" />
-              )}
+          {isFreePlan ? (
+            <div className="flex w-full items-start gap-3 rounded-lg border p-4 text-left opacity-60">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                <Lock className="size-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">Download as Word (.docx)</p>
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                    Pro feature
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  <Link href="/settings?tab=billing" className="text-primary hover:underline">
+                    Upgrade to Pro
+                  </Link>{" "}
+                  to export as Word.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Download as Word (.docx)</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Formatted Word document ready for editing or submission.
-              </p>
-            </div>
-          </button>
+          ) : (
+            <button
+              type="button"
+              className="flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+              onClick={() => handleExport("docx")}
+              disabled={downloading !== null}
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                {downloading === "docx" ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <FileText className="size-5" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium">Download as Word (.docx)</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Formatted Word document ready for editing or submission.
+                </p>
+              </div>
+            </button>
+          )}
 
           {/* PDF */}
-          <button
-            type="button"
-            className="flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-            onClick={() => handleExport("pdf")}
-            disabled={downloading !== null}
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300">
-              {downloading === "pdf" ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <FileDown className="size-5" />
-              )}
+          {isFreePlan ? (
+            <div className="flex w-full items-start gap-3 rounded-lg border p-4 text-left opacity-60">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                <Lock className="size-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">Download as PDF</p>
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                    Pro feature
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  <Link href="/settings?tab=billing" className="text-primary hover:underline">
+                    Upgrade to Pro
+                  </Link>{" "}
+                  to export as PDF.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Download as PDF</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Fixed-layout PDF suitable for printing and archiving.
-              </p>
-            </div>
-          </button>
+          ) : (
+            <button
+              type="button"
+              className="flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+              onClick={() => handleExport("pdf")}
+              disabled={downloading !== null}
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                {downloading === "pdf" ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <FileDown className="size-5" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium">Download as PDF</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Fixed-layout PDF suitable for printing and archiving.
+                </p>
+              </div>
+            </button>
+          )}
 
           {/* Plain text */}
           <button
