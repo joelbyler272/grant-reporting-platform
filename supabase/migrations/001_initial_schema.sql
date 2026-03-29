@@ -1,5 +1,6 @@
 -- ============================================================
 -- GrantFlow: Initial Database Schema
+-- Run this in Supabase Dashboard > SQL Editor
 -- ============================================================
 
 -- Enable uuid generation
@@ -7,12 +8,14 @@ create extension if not exists "uuid-ossp";
 
 -- ============================================================
 -- Helper function: returns the org_id for the current auth user
+-- Placed in PUBLIC schema (auth schema is restricted in Supabase)
 -- ============================================================
-create or replace function auth.user_org_id()
+create or replace function public.user_org_id()
 returns uuid
 language sql
 stable
 security definer
+set search_path = public
 as $$
   select org_id
   from public.users
@@ -313,61 +316,78 @@ alter table public.subscriptions    enable row level security;
 
 -- Organizations: users can only see their own org
 create policy "org_isolation" on public.organizations
-  for all using (id = auth.user_org_id());
+  for all using (id = public.user_org_id());
 
 -- Users: scoped to same org
 create policy "org_isolation" on public.users
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- Programs: scoped to same org
 create policy "org_isolation" on public.programs
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- Program Data: scoped via program -> org
 create policy "org_isolation" on public.program_data
   for all using (
     program_id in (
-      select id from public.programs where org_id = auth.user_org_id()
+      select id from public.programs where org_id = public.user_org_id()
     )
   );
 
 -- Funders: community funders are visible to all; others scoped via grants
 create policy "org_or_community" on public.funders
-  for all using (
+  for select using (
     is_community = true
     or id in (
-      select funder_id from public.grants where org_id = auth.user_org_id()
+      select funder_id from public.grants where org_id = public.user_org_id()
+    )
+    or id in (
+      select funder_id from public.funder_templates where org_id = public.user_org_id()
     )
   );
 
+-- Funders: anyone can insert (creating a new funder)
+create policy "anyone_can_insert" on public.funders
+  for insert with check (true);
+
+-- Funders: can update non-community funders
+create policy "update_non_community" on public.funders
+  for update using (is_community = false);
+
 -- Funder Templates: community (org_id is null) or own org
 create policy "org_or_community" on public.funder_templates
-  for all using (
+  for select using (
     org_id is null
-    or org_id = auth.user_org_id()
+    or org_id = public.user_org_id()
   );
+
+create policy "org_insert" on public.funder_templates
+  for insert with check (org_id = public.user_org_id());
+
+create policy "org_update" on public.funder_templates
+  for update using (org_id = public.user_org_id());
 
 -- Grants: scoped to same org
 create policy "org_isolation" on public.grants
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- Report Due Dates: scoped via grant -> org
 create policy "org_isolation" on public.report_due_dates
   for all using (
     grant_id in (
-      select id from public.grants where org_id = auth.user_org_id()
+      select id from public.grants where org_id = public.user_org_id()
     )
   );
 
 -- Reports: scoped to same org
 create policy "org_isolation" on public.reports
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- Report Versions: scoped via report -> org
 create policy "org_isolation" on public.report_versions
   for all using (
     report_id in (
-      select id from public.reports where org_id = auth.user_org_id()
+      select id from public.reports where org_id = public.user_org_id()
     )
   );
 
@@ -375,21 +395,26 @@ create policy "org_isolation" on public.report_versions
 create policy "org_isolation" on public.comments
   for all using (
     report_id in (
-      select id from public.reports where org_id = auth.user_org_id()
+      select id from public.reports where org_id = public.user_org_id()
     )
   );
 
 -- Funder Notes: scoped to same org
 create policy "org_isolation" on public.funder_notes
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- Subscriptions: scoped to same org
 create policy "org_isolation" on public.subscriptions
-  for all using (org_id = auth.user_org_id());
+  for all using (org_id = public.user_org_id());
 
 -- ============================================================
 -- Trigger: handle new auth user signup
 -- Creates an org, user profile, and free subscription
+--
+-- NOTE: This trigger must be created via Supabase Dashboard >
+-- Authentication > Hooks, or via the Supabase CLI with
+-- elevated permissions. If running from SQL Editor, run
+-- the trigger creation separately (see below).
 -- ============================================================
 create or replace function public.handle_new_user()
 returns trigger
@@ -423,6 +448,16 @@ begin
 end;
 $$;
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+-- ============================================================
+-- IMPORTANT: Run this SEPARATELY after the above succeeds.
+-- This creates the auth trigger. If it fails with a permission
+-- error, go to Supabase Dashboard > Database > Triggers and
+-- create it manually:
+--   Table: auth.users
+--   Event: AFTER INSERT
+--   Function: public.handle_new_user()
+-- ============================================================
+-- Uncomment and run separately:
+-- create trigger on_auth_user_created
+--   after insert on auth.users
+--   for each row execute function public.handle_new_user();
