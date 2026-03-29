@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { Organization } from "@/types"
+import { NotificationSettings } from "@/components/settings/notification-settings"
+import { TeamManagement } from "@/components/settings/team-management"
 
 const MONTHS = [
   { value: 1, label: "January" },
@@ -238,9 +240,7 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Team management coming soon.
-                </p>
+                <TeamManagement />
               </CardContent>
             </Card>
           </TabsContent>
@@ -262,20 +262,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Configure email notifications for report deadlines, team
-                  activity, and system updates.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Notification preferences coming soon.
-                </p>
-              </CardContent>
-            </Card>
+            <NotificationSettings />
           </TabsContent>
         </Tabs>
       </div>
