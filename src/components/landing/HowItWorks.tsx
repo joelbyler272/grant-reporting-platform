@@ -20,7 +20,7 @@ const steps = [
     num: "03",
     icon: Sparkles,
     title: "Generate. Review. Submit.",
-    body: "Select a grant, click generate. In under a minute, ClearGrant produces a complete draft — formatted to your funder's exact requirements, written in the right language, with the right emphasis. You review, adjust if needed, and export. Done.",
+    body: "Select a grant, click generate. In under a minute, ClearGrant produces a complete draft — formatted to your funder\u2019s exact requirements, written in the right language, with the right emphasis. You review, adjust if needed, and export. Done.",
   },
 ];
 

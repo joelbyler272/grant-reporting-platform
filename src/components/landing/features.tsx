@@ -20,19 +20,19 @@ const features = [
   {
     icon: CloudUpload,
     title: "Document Upload + AI Extraction",
-    body: "Upload any document — a board update, a program summary, an internal report — and ClearGrant reads it and extracts your program data automatically. Review, confirm, and you're ready to generate.",
+    body: "Upload any document — a board update, a program summary, an internal report — and ClearGrant reads it and extracts your program data automatically. Review, confirm, and you\u2019re ready to generate.",
     subtitle: "Already have a board report? Use it.",
   },
   {
     icon: Library,
     title: "Community Funder Library",
-    body: "Our growing library of funder templates means you don't have to build from scratch. Search for your foundation, click to add, done. Every nonprofit that uses ClearGrant makes it better for everyone else.",
-    subtitle: "Your funder's template is probably already here.",
+    body: "Our growing library of funder templates means you don\u2019t have to build from scratch. Search for your foundation, click to add, done. Every nonprofit that uses ClearGrant makes it better for everyone else.",
+    subtitle: "Your funder\u2019s template is probably already here.",
   },
   {
     icon: UsersRound,
     title: "Team Collaboration",
-    body: 'Share a report draft for review, leave comments directly on sections, resolve feedback, and approve — without a single email chain or "final_FINAL_v3" document.',
+    body: "Share a report draft for review, leave comments directly on sections, resolve feedback, and approve — without a single email chain or \u201cfinal_FINAL_v3\u201d document.",
     subtitle: "Review with your ED in the platform.",
   },
   {
