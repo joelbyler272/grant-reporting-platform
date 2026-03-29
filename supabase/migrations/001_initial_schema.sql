@@ -7,22 +7,6 @@
 create extension if not exists "uuid-ossp";
 
 -- ============================================================
--- Helper function: returns the org_id for the current auth user
--- Placed in PUBLIC schema (auth schema is restricted in Supabase)
--- ============================================================
-create or replace function public.user_org_id()
-returns uuid
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select org_id
-  from public.users
-  where id = auth.uid()
-$$;
-
--- ============================================================
 -- Trigger function: auto-update updated_at column
 -- ============================================================
 create or replace function public.set_updated_at()
@@ -295,6 +279,22 @@ create index idx_subscriptions_org_id on public.subscriptions (org_id);
 create trigger set_subscriptions_updated_at
   before update on public.subscriptions
   for each row execute function public.set_updated_at();
+
+-- ============================================================
+-- Helper function: returns the org_id for the current auth user
+-- Must be created AFTER tables exist
+-- ============================================================
+create or replace function public.user_org_id()
+returns uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select org_id
+  from public.users
+  where id = auth.uid()
+$$;
 
 -- ============================================================
 -- Row Level Security
