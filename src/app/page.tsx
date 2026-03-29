@@ -1,27 +1,29 @@
-import { Nav } from "@/components/landing/nav"
-import { Hero } from "@/components/landing/hero"
-import { SocialProof } from "@/components/landing/social-proof"
-import { Problem } from "@/components/landing/problem"
-import { HowItWorks } from "@/components/landing/how-it-works"
-import { Features } from "@/components/landing/features"
-import Pricing from "@/components/landing/pricing"
-import Difference from "@/components/landing/difference"
-import FinalCta from "@/components/landing/final-cta"
-import Footer from "@/components/landing/footer"
+import Nav from "@/components/landing/Nav";
+import Hero from "@/components/landing/Hero";
+import SocialProof from "@/components/landing/SocialProof";
+import Problem from "@/components/landing/Problem";
+import HowItWorks from "@/components/landing/HowItWorks";
+import Features from "@/components/landing/Features";
+import Pricing from "@/components/landing/Pricing";
+import Difference from "@/components/landing/Difference";
+import FinalCTA from "@/components/landing/FinalCTA";
+import Footer from "@/components/landing/Footer";
 
-export default function LandingPage() {
+export default function Home() {
   return (
     <>
       <Nav />
-      <Hero />
-      <SocialProof />
-      <Problem />
-      <HowItWorks />
-      <Features />
-      <Pricing />
-      <Difference />
-      <FinalCta />
+      <main>
+        <Hero />
+        <SocialProof />
+        <Problem />
+        <HowItWorks />
+        <Features />
+        <Pricing />
+        <Difference />
+        <FinalCTA />
+      </main>
       <Footer />
     </>
-  )
+  );
 }

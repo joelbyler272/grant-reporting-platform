@@ -1,111 +1,127 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
 import {
-  Database,
+  CalendarCheck,
   Sparkles,
-  LayoutPanelLeft,
-  Users,
-  Calendar,
-  Download,
-} from "lucide-react"
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
-}
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-}
+  CloudUpload,
+  Library,
+  UsersRound,
+  FolderOpen,
+} from "lucide-react";
+import ScrollReveal from "./ScrollReveal";
 
 const features = [
   {
-    icon: Database,
-    title: "Smart Data Entry",
-    body: "Three ways in: upload a document and let AI extract the data, fill out a guided form, or import a spreadsheet. Your data is structured once and reused everywhere.",
-    className: "bg-white border-gray-100",
-  },
-  {
-    icon: Sparkles,
-    title: "Multi-Funder Report Generator",
-    body: "The core feature. Select a grant, click generate. ClearGrant assembles your program data, matches the funder's template section by section, respects word limits, and produces a complete draft — typically in under 60 seconds. Uses only your real data. Never fabricates outcomes or metrics.",
-    className: "bg-teal-50 border-teal-100 md:col-span-2",
-  },
-  {
-    icon: LayoutPanelLeft,
-    title: "Side-by-Side Review",
-    body: "Review your report with the funder's requirements visible on the left and your content on the right. Edit inline. See word counts in real time. Gaps are flagged in yellow so you know exactly what needs attention.",
-    className: "bg-white border-gray-100",
-  },
-  {
-    icon: Users,
-    title: "Team Collaboration",
-    body: "Share drafts with your ED or program staff for review. They leave comments directly on sections. You resolve them and approve. No email chains, no version confusion, no lost feedback.",
-    className: "bg-white border-gray-100",
-  },
-  {
-    icon: Calendar,
+    icon: CalendarCheck,
     title: "Deadline Dashboard",
-    body: "Every grant, every due date, every status — visible at a glance. Color-coded urgency. Email reminders at two weeks, one week, and three days. You'll never miss a deadline or discover one the night before.",
-    className: "bg-white border-gray-100",
+    body: "Every grant, every funder, every due date — visible the moment you log in. Color-coded by urgency. Reminders sent automatically two weeks, one week, and three days out.",
+    subtitle: "Never miss a report again.",
   },
   {
-    icon: Download,
-    title: "One-Click Export",
-    body: "Download as a formatted Word document, a clean PDF, or plain text ready to paste into a funder portal. Each export matches the funder's exact specifications.",
-    className: "bg-white border-gray-100",
+    icon: CloudUpload,
+    title: "Document Upload + AI Extraction",
+    body: "Upload any document — a board update, a program summary, an internal report — and ClearGrant reads it and extracts your program data automatically. Review, confirm, and you're ready to generate.",
+    subtitle: "Already have a board report? Use it.",
   },
-]
+  {
+    icon: Library,
+    title: "Community Funder Library",
+    body: "Our growing library of funder templates means you don't have to build from scratch. Search for your foundation, click to add, done. Every nonprofit that uses ClearGrant makes it better for everyone else.",
+    subtitle: "Your funder's template is probably already here.",
+  },
+  {
+    icon: UsersRound,
+    title: "Team Collaboration",
+    body: 'Share a report draft for review, leave comments directly on sections, resolve feedback, and approve — without a single email chain or "final_FINAL_v3" document.',
+    subtitle: "Review with your ED in the platform.",
+  },
+  {
+    icon: FolderOpen,
+    title: "Report Archive",
+    body: "When a funder asks what you reported last year, you have it in three clicks. Complete history, version by version.",
+    subtitle: "Every report, always findable.",
+  },
+];
 
-export function Features() {
+export default function Features() {
   return (
-    <section id="features" className="py-32">
-      <motion.div
-        className="max-w-6xl mx-auto px-6"
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-      >
-        <motion.p
-          variants={fadeUp}
-          className="text-xs font-semibold tracking-widest uppercase text-teal-600 text-center mb-4"
-        >
-          FEATURES
-        </motion.p>
+    <section id="features" className="py-32 px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-16">
+          <ScrollReveal>
+            <p className="section-label mb-4">Everything You Need</p>
+          </ScrollReveal>
+          <ScrollReveal delay={0.1}>
+            <h2 className="heading-2">
+              Built for the way
+              <br />
+              <span className="font-display italic">development directors actually work.</span>
+            </h2>
+          </ScrollReveal>
+        </div>
 
-        <motion.h2
-          variants={fadeUp}
-          className="text-4xl md:text-5xl font-bold tracking-[-0.03em] text-center text-gray-900"
-        >
-          Built for the way development directors actually work.
-        </motion.h2>
-
-        <motion.div
-          variants={stagger}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-16"
-        >
-          {features.map((feature) => (
-            <motion.div
-              key={feature.title}
-              variants={fadeUp}
-              className={`rounded-2xl p-8 border shadow-sm ${feature.className}`}
-            >
-              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-teal-600" />
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Hero feature — full width */}
+          <ScrollReveal className="md:col-span-2">
+            <div className="bg-teal-bg rounded-2xl p-8 md:p-10 border border-teal-light">
+              <div className="flex flex-col md:flex-row md:items-start gap-8">
+                <div className="flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm">
+                    <Sparkles className="w-5 h-5 text-teal" />
+                  </div>
+                  <p className="text-sm font-medium text-teal-dark mb-1">One data set. Every format.</p>
+                  <h3 className="text-2xl font-semibold text-text-primary tracking-tight">
+                    Multi-Funder Report Generator
+                  </h3>
+                  <p className="text-text-secondary text-base leading-[1.7] mt-3">
+                    Your program data goes in once. ClearGrant generates a tailored report for each
+                    funder — matching their template, their section structure, their word limits, their
+                    emphasis areas. Not a mail merge. An actual report.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 w-full md:w-[280px]">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="bg-white rounded-xl border border-border px-5 py-3 text-sm font-medium text-text-primary shadow-sm w-full text-center">
+                      Your Program Data
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="w-px h-4 bg-teal" />
+                      <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-teal" />
+                    </div>
+                    <div className="space-y-2 w-full">
+                      {["Meyer Foundation Report", "United Way Report", "Community Trust Report"].map(
+                        (name) => (
+                          <div
+                            key={name}
+                            className="bg-white rounded-lg border border-border px-4 py-2.5 text-xs font-medium text-text-secondary flex items-center gap-2"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-teal flex-shrink-0" />
+                            {name}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 mt-2 leading-relaxed">
-                {feature.body}
-              </p>
-            </motion.div>
+            </div>
+          </ScrollReveal>
+
+          {/* Remaining features */}
+          {features.map((f, i) => (
+            <ScrollReveal key={f.title} delay={0.1 * (i + 1)}>
+              <div className="p-8 rounded-2xl hover:bg-off-white transition-colors h-full">
+                <div className="w-10 h-10 rounded-xl bg-teal-bg flex items-center justify-center">
+                  <f.icon className="w-5 h-5 text-teal" />
+                </div>
+                <p className="text-sm font-medium text-teal-dark mt-4 mb-1">{f.subtitle}</p>
+                <h3 className="text-lg font-semibold text-text-primary">{f.title}</h3>
+                <p className="text-text-secondary text-base leading-[1.7] mt-2">{f.body}</p>
+              </div>
+            </ScrollReveal>
           ))}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
-  )
+  );
 }
