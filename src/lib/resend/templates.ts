@@ -43,7 +43,7 @@ export function deadlineReminderEmail(params: DeadlineReminderParams): string {
           <!-- Header -->
           <tr>
             <td style="background-color:#0d9488;padding:24px 32px;">
-              <span style="font-size:20px;font-weight:700;color:#ffffff;">Grant</span><span style="font-size:20px;font-weight:700;color:#ccfbf1;">Flow</span>
+              <span style="font-size:20px;font-weight:700;color:#ffffff;">Clear</span><span style="font-size:20px;font-weight:700;color:#ccfbf1;">Grant</span>
             </td>
           </tr>
 
@@ -107,7 +107,7 @@ export function deadlineReminderEmail(params: DeadlineReminderParams): string {
               </table>
 
               <p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.5;text-align:center;">
-                You are receiving this because you are a member of ${orgName} on GrantFlow.
+                You are receiving this because you are a member of ${orgName} on ClearGrant.
               </p>
             </td>
           </tr>
@@ -116,7 +116,7 @@ export function deadlineReminderEmail(params: DeadlineReminderParams): string {
           <tr>
             <td style="padding:20px 32px;border-top:1px solid #e4e4e7;">
               <p style="margin:0;font-size:12px;color:#a1a1aa;text-align:center;">
-                GrantFlow &middot; Grant Reporting Made Simple
+                ClearGrant &middot; Grant Reporting Made Simple
               </p>
             </td>
           </tr>

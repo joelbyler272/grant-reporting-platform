@@ -35,10 +35,14 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-1 px-4">
-        <span className="text-xl font-bold text-foreground">Grant</span>
+      <div className="flex h-16 items-center gap-2 px-4">
+        <div className="w-7 h-7 bg-teal-600 rounded-lg flex items-center justify-center shrink-0">
+          <span className="text-white font-bold text-sm">C</span>
+        </div>
         {!collapsed && (
-          <span className="text-xl font-bold text-primary">Flow</span>
+          <span className="font-semibold text-gray-900">
+            <span className="text-teal-600">Clear</span>Grant
+          </span>
         )}
       </div>
 

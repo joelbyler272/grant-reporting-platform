@@ -27,7 +27,7 @@ const DEFAULTS: NotificationPreferences = {
   emailTeamActivity: false,
 }
 
-const STORAGE_KEY = "grantflow-notification-prefs"
+const STORAGE_KEY = "cleargrant-notification-prefs"
 
 function loadPreferences(): NotificationPreferences {
   if (typeof window === "undefined") return DEFAULTS

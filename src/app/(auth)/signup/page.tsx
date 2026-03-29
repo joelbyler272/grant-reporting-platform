@@ -48,10 +48,14 @@ export default function SignupPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Branding */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold">
-            <span className="text-foreground">Grant</span>
-            <span className="text-primary">Flow</span>
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-base">C</span>
+            </div>
+            <span className="text-xl font-semibold text-gray-900">
+              <span className="text-teal-600">Clear</span>Grant
+            </span>
+          </div>
           <p className="mt-2 text-sm text-muted-foreground">
             Create your account
           </p>

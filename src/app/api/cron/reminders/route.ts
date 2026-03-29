@@ -77,7 +77,7 @@ export async function GET(request: Request) {
         { weekday: "long", year: "numeric", month: "long", day: "numeric" }
       )
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.grantflow.io"
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.cleargrant.io"
 
       for (const user of users) {
         const reportUrl = `${baseUrl}/grants/${grant.id}`
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
 
         try {
           await resend.emails.send({
-            from: "GrantFlow <notifications@grantflow.io>",
+            from: "ClearGrant <notifications@cleargrant.io>",
             to: user.email,
             subject: `Report due in ${threshold} day${threshold === 1 ? "" : "s"}: ${grant.name}`,
             html,

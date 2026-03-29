@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/signup", "/api/webhooks"];
+const publicRoutes = ["/login", "/signup", "/api/webhooks", "/api/cron"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -37,9 +37,10 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users to /login (except public routes)
+  // Redirect unauthenticated users to /login (except public routes and root)
   if (
     !user &&
+    pathname !== "/" &&
     !publicRoutes.some((route) => pathname.startsWith(route))
   ) {
     const url = request.nextUrl.clone();
@@ -49,13 +50,6 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect / to /dashboard for authenticated users
-  if (user && pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

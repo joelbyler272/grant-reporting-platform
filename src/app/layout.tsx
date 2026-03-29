@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -14,10 +14,21 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "GrantFlow — AI-Powered Grant Reporting",
-  description:
-    "Enter program data once, generate polished grant reports for every funder automatically.",
+  title: {
+    default: "ClearGrant",
+    template: "%s | ClearGrant",
+  },
+  description: "AI-powered grant reporting for nonprofits. Generate polished, funder-ready reports automatically.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
@@ -28,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
